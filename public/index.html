@@ -277,6 +277,7 @@ function renderRow(idx) {
   form.sections.forEach((s) => {
     const td = document.createElement("td");
     const key = String(s.id);
+
     if (s.options && s.options.length) {
       const select = document.createElement("select");
       const none = document.createElement("option");
@@ -297,9 +298,15 @@ function renderRow(idx) {
       td.appendChild(select);
     } else {
       const input = document.createElement("input");
-      input.type = "text";
       input.value = (state.rows[idx]?.[key] ?? "");
-      input.placeholder = "value";
+      if (s.type === "date") {
+        input.type = "date";
+      } else if (s.type === "time") {
+        input.type = "time";
+      } else {
+        input.type = "text";
+        input.placeholder = "value";
+      }
       input.addEventListener("input", () => {
         state.rows[idx][key] = input.value;
       });

@@ -1,8 +1,10 @@
+
 export interface Section {
   name: string;
   isRequired: boolean;
   id: string | number;
   options?: string[];
+  type: QuestionType;
 }
 
 export interface FormSchema {
@@ -10,6 +12,26 @@ export interface FormSchema {
   formId: string | null;
   name: string;
   sections: Section[];
+}
+
+const typeMap = {
+  0: "short_answer",
+  1: "paragraph",
+  2: "multiple_choice",
+  3: "dropdown",
+  4: "checkboxes",
+  5: "linear_scale",
+  7: "grid_choice",
+  9: "date",
+  10: "time",
+  13: "file_upload",
+  18: "rating",
+} as const;
+
+export type QuestionType = (typeof typeMap)[keyof typeof typeMap] | "unknown";
+
+function getTypeString(type: number): QuestionType {
+  return typeMap[type as keyof typeof typeMap] ?? "unknown";
 }
 
 export function parseFormMetadata(formMetadata: unknown): FormSchema {
@@ -33,11 +55,14 @@ export function parseFormMetadata(formMetadata: unknown): FormSchema {
 
       return {
         name,
+        desc: entry[2],
         isRequired,
         id,
         options,
+        type: getTypeString(entry[3]),
       };
     });
+    
 
   return {
     id: formId,
