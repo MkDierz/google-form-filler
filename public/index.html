@@ -194,6 +194,51 @@ function escapeHtml(str) {
 
 function addError(el, msg) { el.textContent = msg; }
 
+const TYPE_MAP = {
+  0: "short_answer",
+  1: "paragraph",
+  2: "multiple_choice",
+  3: "dropdown",
+  4: "checkboxes",
+  5: "linear_scale",
+  7: "grid_choice",
+  9: "date",
+  10: "time",
+  13: "file_upload",
+  18: "rating",
+};
+
+function getTypeString(type) {
+  return TYPE_MAP[type] ?? "unknown";
+}
+
+function parseFormMetadata(formMetadata) {
+  const root = formMetadata;
+  const sectionEntries = (root?.[1]?.[1] ?? []);
+  const formId = root?.[14] ?? null;
+  const formName = root?.[3] ?? "";
+
+  const sections = sectionEntries
+    .filter((entry) => entry[4]?.[0])
+    .map((entry) => {
+      const name = entry[1];
+      const [detail] = entry[4];
+      const id = detail[0];
+      const options = detail[1]?.map((option) => option[0]);
+      const isRequired = detail[2] === 1;
+      return {
+        name,
+        desc: entry[2],
+        isRequired,
+        id,
+        options,
+        type: getTypeString(entry[3]),
+      };
+    });
+
+  return { id: formId, formId, name: formName, sections };
+}
+
 async function loadMetadata() {
   const input = $("metadata-input").value.trim();
   addError($("meta-error"), "");
@@ -209,13 +254,7 @@ async function loadMetadata() {
     return;
   }
   try {
-    const res = await fetch("/api/parse", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ metadata: parsed }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to parse");
+    const data = parseFormMetadata(parsed);
     state.form = data;
     state.rows = [];
     if (!data.formId) {
