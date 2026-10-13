@@ -14,10 +14,12 @@
         padding-top: env(safe-area-inset-top, 0px);
         padding-bottom: env(safe-area-inset-bottom, 0px);
       }
+
       html,
       body {
         height: 100%;
       }
+
       body {
         background: #f6f7f9;
         color: #1e293b;
@@ -29,16 +31,19 @@
           Roboto,
           sans-serif;
       }
+
       table {
         border-collapse: separate;
         border-spacing: 0;
       }
+
       th,
       td {
         border-right: 1px solid #e2e8f0;
         border-bottom: 1px solid #e2e8f0;
         background: #fff;
       }
+
       thead th {
         position: sticky;
         top: 0;
@@ -51,6 +56,7 @@
         min-width: 170px;
         white-space: nowrap;
       }
+
       thead th.act,
       tbody td.act {
         position: sticky;
@@ -59,9 +65,134 @@
         min-width: 236px;
         width: 236px;
       }
+
       tbody td.act {
         z-index: 2;
       }
+
+      td textarea {
+        display: block;
+        width: 100%;
+        /* min-height: 36px; */
+        padding: 8px 10px;
+        line-height: 20px;
+        font-size: 13px;
+        font-family: inherit;
+        background: transparent;
+        border: 0;
+        outline: none;
+        resize: none;
+        overflow: hidden;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      tbody td {
+        vertical-align: top;
+      }
+
+      .dd {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+        height: 36px;
+        padding: 0 10px;
+        font-size: 13px;
+        font-family: inherit;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        outline: none;
+        cursor: pointer;
+        color: #1e293b;
+      }
+
+      .dd:focus,
+      .dd.open {
+        box-shadow: inset 0 0 0 2px #0f766e;
+        background: #f0fdfa;
+      }
+
+      .dd .v {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .dd .ph {
+        color: #94a3b8;
+      }
+
+      .dd svg {
+        flex: none;
+        color: #94a3b8;
+      }
+
+      td input[type="date"],
+      td input[type="time"] {
+        font-family: inherit;
+        color: #1e293b;
+      }
+
+      #pop {
+        position: fixed;
+        z-index: 50;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      #pop input {
+        height: 36px;
+        padding: 0 12px;
+        border: 0;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 13px;
+        outline: none;
+        width: 100%;
+      }
+
+      #pop ul {
+        overflow: auto;
+        max-height: 240px;
+        padding: 4px;
+        margin: 0;
+        list-style: none;
+      }
+
+      #pop li {
+        padding: 7px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      #pop li.hi {
+        background: #ccfbf1;
+      }
+
+      #pop li.sel {
+        font-weight: 600;
+      }
+
+      #pop li.mute {
+        color: #64748b;
+      }
+
+      #pop li.none {
+        color: #64748b;
+        cursor: default;
+      }
+
       td input,
       td select {
         width: 100%;
@@ -72,17 +203,22 @@
         border: 0;
         outline: none;
       }
+
       td input:focus,
-      td select:focus {
+      td select:focus,
+      td textarea:focus {
         box-shadow: inset 0 0 0 2px #0f766e;
         background: #f0fdfa;
       }
+
       tbody tr.done td {
         background: #f0fdf4;
       }
+
       tbody tr.done td.act {
         background: #ecfdf5;
       }
+
       .btn {
         display: inline-flex;
         align-items: center;
@@ -96,37 +232,61 @@
         background: #fff;
         cursor: pointer;
       }
+
       .btn:hover {
         background: #f1f5f9;
       }
+
       .btn:focus-visible,
       button:focus-visible {
         outline: 2px solid #0f766e;
         outline-offset: 2px;
       }
+
       .btn-p {
         background: #0f766e;
         border-color: #0f766e;
         color: #fff;
       }
+
       .btn-p:hover {
         background: #115e59;
       }
+
       .btn:disabled {
         opacity: 0.45;
         cursor: not-allowed;
       }
+
       dialog::backdrop {
         background: rgba(15, 23, 42, 0.45);
       }
+
       dialog {
         border: 0;
         border-radius: 16px;
         padding: 0;
         color: #1e293b;
       }
+
+      .auto-grow {
+        /* The magic line that handles auto-width, auto-height, and content wrapping */
+        field-sizing: content;
+
+        /* Forces text to wrap onto a new line normally */
+        white-space: pre-wrap;
+        word-wrap: break-word;
+
+        /* Optional controls */
+        resize: none; /* Removes manual resize handle */
+        overflow: hidden; /* Prevents unnecessary scrollbars */
+        min-width: 150px; /* Stops it from shrinking to 0 width when empty */
+        max-width: 100%; /* Keeps it bounded within its parent container */
+        min-height: 1lh; /* Sets minimum height to 1 line */
+      }
     </style>
   </head>
+
   <body class="flex flex-col">
     <header
       class="flex flex-wrap items-center gap-2 bg-white border-b border-slate-200 px-3 py-2"
@@ -170,12 +330,18 @@
     <footer
       class="flex items-center justify-between gap-4 bg-white border-t border-slate-200 px-3 py-1.5 text-xs text-slate-500"
     >
-      <span
-        >Tip: paste a block copied from Excel or Sheets into any cell. Enter
-        moves down. Separate checkbox answers with <b>;</b></span
-      >
+      <span>
+        Tip: paste a block copied from Excel or Sheets into any cell. Enter
+        moves down, Shift+Enter adds a new line in a cell. Separate checkbox
+        answers with <b>;</b>
+      </span>
       <span id="msg" class="font-medium text-teal-700"></span>
     </footer>
+
+    <div id="pop">
+      <input id="pop-q" placeholder="Search options" autocomplete="off" />
+      <ul id="pop-l"></ul>
+    </div>
 
     <dialog id="dlg" style="width: min(980px, 96vw)">
       <div
@@ -548,6 +714,13 @@
 
       function cellHtml(s, i) {
         const v = esc(rows[i].v[s.id] ?? "");
+        if (
+          s.options.length &&
+          s.type !== "checkboxes" &&
+          s.type !== "date" &&
+          s.type !== "time"
+        )
+          return ddHtml(s, i);
         const at = `data-r="${i}" data-s="${s.id}"`;
         if (
           (s.options.length &&
@@ -561,12 +734,137 @@
             s.options.includes(raw) || !raw ? s.options : [raw, ...s.options];
           return `<select ${at}><option value=""></option>${opts.map((o) => `<option value="${esc(o)}" ${o === raw ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
         }
-        const type =
-          s.type === "date" ? "date" : s.type === "time" ? "time" : "text";
+        if (s.type !== "date" && s.type !== "time")
+          return `<textarea ${at} rows="1" class="auto-grow" placeholder="${s.type === "checkboxes" ? "A; B; C" : ""}">${v}</textarea>`;
+        const type = s.type;
         const ph = s.type === "checkboxes" ? "A; B; C" : "";
         return `<input ${at} type="${type}" value="${v}" placeholder="${ph}" list="${s.type === "checkboxes" && s.options.length ? "dl" + s.id : ""}" />`;
       }
+      /* ---------- searchable dropdown ---------- */
+      const CHEV =
+        '<svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 8 5 5 5-5"/></svg>';
+      const ddInner = (val) =>
+        `<span class="v ${val ? "" : "ph"}">${val ? esc(val) : "Select"}</span>${CHEV}`;
+      function ddHtml(s, i) {
+        const val = rows[i].v[s.id] ?? "";
+        return `<button type="button" class="dd" data-r="${i}" data-s="${s.id}" data-dd="1" title="${esc(val)}">${ddInner(val)}</button>`;
+      }
+      const pop = $("pop"),
+        popQ = $("pop-q"),
+        popL = $("pop-l");
+      let P = null;
+      function openPop(btn) {
+        const s = form.sections.find((x) => String(x.id) === btn.dataset.s),
+          i = +btn.dataset.r;
+        P = { btn, i, s, cur: rows[i].v[s.id] ?? "", hi: 0, list: [] };
+        btn.classList.add("open");
+        popQ.value = "";
+        pop.style.display = "flex";
+        const r = btn.getBoundingClientRect(),
+          w = Math.max(r.width, 240);
+        pop.style.width = w + "px";
+        pop.style.left =
+          Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+        const below = innerHeight - r.bottom;
+        if (below < 320 && r.top > below) {
+          pop.style.top = "auto";
+          pop.style.bottom = innerHeight - r.top + 4 + "px";
+        } else {
+          pop.style.bottom = "auto";
+          pop.style.top = r.bottom + 2 + "px";
+        }
+        filterPop();
+        popQ.focus();
+      }
+      function filterPop() {
+        const q = popQ.value.trim().toLowerCase();
+        P.list = P.s.options.filter((o) => o.toLowerCase().includes(q));
+        const idx = P.list.indexOf(P.cur);
+        if (P.cur && !q) P.list.unshift("");
+        P.hi = q || idx < 0 ? (P.cur && !q ? 1 : 0) : idx + 1;
+        if (P.hi >= P.list.length) P.hi = 0;
+        drawPop(true);
+      }
+      function drawPop(scroll) {
+        popL.innerHTML = P.list.length
+          ? P.list
+              .map((o, k) =>
+                o === ""
+                  ? `<li data-k="${k}" class="mute ${k === P.hi ? "hi" : ""}">Clear selection</li>`
+                  : `<li data-k="${k}" class="${k === P.hi ? "hi" : ""} ${o === P.cur ? "sel" : ""}"><span>${esc(o)}</span>${o === P.cur ? "<span>✓</span>" : ""}</li>`,
+              )
+              .join("")
+          : '<li class="none">No matching options</li>';
+        if (scroll)
+          popL.querySelector(".hi")?.scrollIntoView({ block: "nearest" });
+      }
+      function choosePop(k) {
+        if (!P || k < 0 || k >= P.list.length) return;
+        const val = P.list[k],
+          { btn, i, s } = P;
+        rows[i].v[s.id] = val;
+        rows[i].c = false;
+        btn.innerHTML = ddInner(val);
+        btn.title = val;
+        persistRows();
+        paintAct(i);
+        stats();
+        closePop(true);
+      }
+      function closePop(refocus) {
+        if (!P) return;
+        const b = P.btn;
+        b.classList.remove("open");
+        pop.style.display = "none";
+        P = null;
+        if (refocus) b.focus();
+      }
+      popQ.addEventListener("input", () => P && filterPop());
+      popQ.addEventListener("keydown", (e) => {
+        if (!P) return;
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const n = P.list.length;
+          if (!n) return;
+          P.hi = (P.hi + (e.key === "ArrowDown" ? 1 : -1) + n) % n;
+          drawPop(true);
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          choosePop(P.hi);
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          closePop(true);
+        } else if (e.key === "Tab") closePop(false);
+      });
+      popL.addEventListener("mousedown", (e) => e.preventDefault());
+      popL.addEventListener("click", (e) => {
+        const li = e.target.closest("li[data-k]");
+        if (li) choosePop(+li.dataset.k);
+      });
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest(".dd");
+        if (b) {
+          if (P && P.btn === b) closePop(true);
+          else {
+            closePop();
+            openPop(b);
+          }
+          return;
+        }
+        if (P && !pop.contains(e.target)) closePop();
+      });
+      $("main").addEventListener("scroll", () => closePop());
+      window.addEventListener("resize", () => closePop());
+
+      const grow = (el) => {
+        el.style.height = "auto";
+        el.style.height = el.scrollHeight + "px";
+      };
+      const growAll = () =>
+        document.querySelectorAll("#tbody textarea").forEach(grow);
+      window.addEventListener("resize", growAll);
       function renderBody() {
+        setTimeout(growAll, 0);
         $("tbody").innerHTML = rows
           .map(
             (r, i) =>
@@ -582,6 +880,7 @@
         if (!el.dataset?.s) return;
         const i = +el.dataset.r;
         rows[i].v[el.dataset.s] = el.value;
+        if (el.tagName === "TEXTAREA") grow(el);
         if (rows[i].c) {
           rows[i].c = false;
         } // edited: needs a fresh click
@@ -617,12 +916,15 @@
       });
       document.addEventListener("keydown", (e) => {
         const el = e.target;
-        if (
-          e.key !== "Enter" ||
-          !el.dataset?.s ||
-          (el.tagName === "SELECT" && false)
-        )
+        if (el.dataset?.dd && ["Enter", " ", "ArrowDown"].includes(e.key)) {
+          e.preventDefault();
+          if (!P || P.btn !== el) {
+            closePop();
+            openPop(el);
+          }
           return;
+        }
+        if (e.key !== "Enter" || e.shiftKey || !el.dataset?.s) return;
         e.preventDefault();
         const i = +el.dataset.r + 1;
         if (i >= rows.length) {
@@ -640,10 +942,7 @@
         const text = e.clipboardData.getData("text");
         if (!/[\t\n]/.test(text.replace(/\r?\n$/, ""))) return;
         e.preventDefault();
-        const lines = text
-          .replace(/\r?\n$/, "")
-          .split(/\r?\n/)
-          .map((l) => l.split("\t"));
+        const lines = parseCsv(text.replace(/\r?\n$/, ""), "\t");
         const startCol = form.sections.findIndex(
           (s) => String(s.id) === el.dataset.s,
         );
@@ -667,7 +966,7 @@
         const s = String(v ?? "");
         return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
       };
-      function parseCsv(text) {
+      function parseCsv(text, d = ",") {
         const out = [];
         let row = [],
           f = "",
@@ -681,8 +980,8 @@
                 i++;
               } else q = false;
             } else f += c;
-          } else if (c === '"') q = true;
-          else if (c === ",") {
+          } else if (c === '"' && f === "") q = true;
+          else if (c === d) {
             row.push(f);
             f = "";
           } else if (c === "\n" || c === "\r") {
@@ -816,3 +1115,4 @@
     </script>
   </body>
 </html>
+s
