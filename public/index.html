@@ -1,554 +1,600 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Google Form Filler</title>
-<style>
-  :root {
-    --border: #e2e8f0;
-    --muted: #64748b;
-    --primary: #3b82f6;
-    --primary-dark: #2563eb;
-    --bg: #f8fafc;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0;
-    background: var(--bg);
-    color: #0f172a;
-  }
-  header {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    background: #fff;
-  }
-  header h1 { margin: 0; font-size: 1.25rem; }
-  header p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
-  main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
-  section {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
-  }
-  h2 { margin-top: 0; font-size: 1.1rem; }
-  details { margin-bottom: 1rem; }
-  summary { cursor: pointer; color: var(--primary); font-weight: 500; }
-  code {
-    background: #f1f5f9;
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.85em;
-  }
-  textarea {
-    width: 100%;
-    min-height: 120px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.85rem;
-    padding: 0.6rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    resize: vertical;
-  }
-  .row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-  button {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-  button:hover { background: var(--primary-dark); }
-  button.secondary {
-    background: #fff;
-    color: var(--primary);
-    border: 1px solid var(--primary);
-  }
-  button.secondary:hover { background: #eff6ff; }
-  button.danger { background: #ef4444; }
-  button.danger:hover { background: #dc2626; }
-  .form-meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
-  .table-wrap { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; }
-  th, td {
-    border: 1px solid var(--border);
-    padding: 0.4rem 0.5rem;
-    text-align: left;
-    min-width: 120px;
-  }
-  th { background: #f8fafc; font-weight: 600; font-size: 0.85rem; }
-  th .req { color: #ef4444; }
-  th .section-id { display: block; color: var(--muted); font-weight: 400; font-size: 0.7rem; }
-  td input, td select {
-    width: 100%;
-    border: 1px solid transparent;
-    padding: 0.25rem;
-    font-size: 0.85rem;
-    background: transparent;
-  }
-  td input:focus, td select:focus { outline: 1px solid var(--primary); border-radius: 4px; }
-  .toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0; }
-  .hidden { display: none; }
-  .results { margin-top: 1rem; }
-  .result-item {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.6rem;
-    margin-bottom: 0.5rem;
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-  .result-item a { color: var(--primary); word-break: break-all; flex: 1; }
-  .error { color: #ef4444; margin-top: 0.5rem; font-size: 0.9rem; }
-  .empty-state { color: var(--muted); font-style: italic; }
-  input[type="file"] { display: none; }
-  label.file-btn {
-    background: #fff;
-    color: var(--primary);
-    border: 1px solid var(--primary);
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-  label.file-btn:hover { background: #eff6ff; }
-</style>
-</head>
-<body>
-<header>
-  <h1>Google Form Filler</h1>
-  <p>Paste form metadata, fill out the table (one row per submission), and generate pre-filled Google Form URLs.</p>
-</header>
+<!doctype html>
+<html lang="en" class="h-full bg-slate-50 text-slate-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Form Filler</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-full font-sans antialiased flex flex-col">
+    <header class="bg-white border-b border-slate-200 px-6 py-5 shadow-sm">
+      <div class="max-w-7xl mx-auto">
+        <h1 class="text-xl font-bold tracking-tight text-slate-900">
+          Google Form Filler
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+          Paste form metadata, fill out the table (one row per submission), and
+          generate pre-filled Google Form URLs.
+        </p>
+      </div>
+    </header>
 
-<main>
-  <!-- Step 1: Metadata input -->
-  <section>
-    <h2>Step 1 — Provide form metadata</h2>
-    <details>
-      <summary>How to get the metadata</summary>
-      <ol>
-        <li>Open the Google Form you want to pre-fill in your browser.</li>
-        <li>Open the browser console (F12 → Console).</li>
-        <li>Paste and run:
-          <br><code>copy(JSON.stringify(FB_PUBLIC_LOAD_DATA_))</code>
-        </li>
-        <li>The metadata is now on your clipboard. Paste it below, or save it to a file and upload it.</li>
-      </ol>
-    </details>
-    <textarea id="metadata-input" placeholder='Paste the JSON metadata here (from FB_PUBLIC_LOAD_DATA_)...'></textarea>
-    <div class="row" style="margin-top:0.5rem">
-      <button id="load-btn">Load form</button>
-      <label for="upload-input" class="file-btn">Upload JSON file</label>
-      <input type="file" id="upload-input" accept=".json,application/json" />
-    </div>
-    <div id="meta-error" class="error"></div>
-  </section>
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+      <!-- Step 1: Metadata input -->
+      <section
+        class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6"
+      >
+        <h2 class="text-lg font-semibold text-slate-800 mb-3">
+          Step 1 — Provide form metadata
+        </h2>
 
-  <!-- Step 2: Table -->
-  <section id="table-section" class="hidden">
-    <h2>Step 2 — Fill in your submissions</h2>
-    <div id="form-meta" class="form-meta"></div>
-    <p class="empty-state" id="add-hint">Each row is one form submission. Add as many as you like.</p>
-    <div class="toolbar">
-      <button id="add-row" class="secondary">+ Add row</button>
-      <button id="remove-last" class="secondary">Remove last row</button>
-      <button id="export-csv" class="secondary">Export CSV</button>
-      <label for="csv-input" class="file-btn">Import CSV</label>
-      <input type="file" id="csv-input" accept=".csv,text/csv" />
-    </div>
-    <div class="table-wrap">
-      <table id="data-table">
-        <thead id="table-head"></thead>
-        <tbody id="table-body"></tbody>
-      </table>
-    </div>
-    <div class="error" id="table-error"></div>
+        <details class="mb-4 group">
+          <summary
+            class="cursor-pointer text-blue-600 font-medium text-sm hover:text-blue-700 select-none"
+          >
+            How to get the metadata
+          </summary>
+          <ol
+            class="list-decimal list-inside mt-2 space-y-1 text-sm text-slate-600 pl-1"
+          >
+            <li>Open the Google Form you want to pre-fill in your browser.</li>
+            <li>
+              Open the browser console (<kbd
+                class="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-xs"
+                >F12</kbd
+              >
+              →
+              <kbd
+                class="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-xs"
+                >Console</kbd
+              >).
+            </li>
+            <li>
+              Paste and run:
+              <div class="mt-1">
+                <code
+                  class="bg-slate-100 text-slate-800 px-2 py-1 rounded text-xs font-mono inline-block border border-slate-200"
+                  >copy(JSON.stringify(FB_PUBLIC_LOAD_DATA_))</code
+                >
+              </div>
+            </li>
+            <li class="mt-1">
+              The metadata is now on your clipboard. Paste it below, or save it
+              to a file and upload it.
+            </li>
+          </ol>
+        </details>
 
-    <h2 style="margin-top:1.5rem">Step 3 — Generate the pre-filled URLs</h2>
-    <div class="toolbar">
-      <button id="generate-btn">Generate URLs</button>
-    </div>
-    <div id="results" class="results"></div>
-  </section>
-</main>
+        <textarea
+          id="metadata-input"
+          class="w-full min-h-[130px] font-mono text-xs sm:text-sm p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y bg-slate-50/50"
+          placeholder="Paste the JSON metadata here (from FB_PUBLIC_LOAD_DATA_)..."
+        ></textarea>
 
-<script type="module">
-const state = {
-  form: null,
-  rows: [],
-};
+        <div class="flex flex-wrap items-center gap-3 mt-3">
+          <button
+            id="load-btn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
+          >
+            Load form
+          </button>
 
-const $ = (id) => document.getElementById(id);
+          <label
+            for="upload-input"
+            class="bg-white hover:bg-blue-50 text-blue-600 border border-blue-600 font-medium px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer inline-flex items-center"
+          >
+            Upload JSON file
+          </label>
+          <input
+            type="file"
+            id="upload-input"
+            accept=".json,application/json"
+            class="hidden"
+          />
+        </div>
 
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[c]));
-}
+        <div
+          id="meta-error"
+          class="text-red-500 text-sm mt-2 font-medium"
+        ></div>
+      </section>
 
-function addError(el, msg) { el.textContent = msg; }
+      <!-- Step 2: Table -->
+      <section
+        id="table-section"
+        class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hidden"
+      >
+        <h2 class="text-lg font-semibold text-slate-800 mb-1">
+          Step 2 — Fill in your submissions
+        </h2>
+        <div id="form-meta" class="text-sm text-slate-500 mb-2"></div>
+        <p class="text-sm text-slate-400 italic mb-4" id="add-hint">
+          Each row is one form submission. Add as many as you like.
+        </p>
 
-const TYPE_MAP = {
-  0: "short_answer",
-  1: "paragraph",
-  2: "multiple_choice",
-  3: "dropdown",
-  4: "checkboxes",
-  5: "linear_scale",
-  7: "grid_choice",
-  9: "date",
-  10: "time",
-  13: "file_upload",
-  18: "rating",
-};
+        <div class="flex flex-wrap items-center gap-2.5 mb-4">
+          <button
+            id="add-row"
+            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
+          >
+            + Add row
+          </button>
+          <button
+            id="remove-last"
+            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
+          >
+            Remove last row
+          </button>
+          <button
+            id="export-csv"
+            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
+          >
+            Export CSV
+          </button>
 
-function getTypeString(type) {
-  return TYPE_MAP[type] ?? "unknown";
-}
+          <label
+            for="csv-input"
+            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer inline-flex items-center shadow-sm"
+          >
+            Import CSV
+          </label>
+          <input
+            type="file"
+            id="csv-input"
+            accept=".csv,text/csv"
+            class="hidden"
+          />
+        </div>
 
-function parseFormMetadata(formMetadata) {
-  const root = formMetadata;
-  const sectionEntries = (root?.[1]?.[1] ?? []);
-  const formId = root?.[14] ?? null;
-  const formName = root?.[3] ?? "";
+        <div class="overflow-x-auto border border-slate-200 rounded-lg">
+          <table
+            id="data-table"
+            class="w-full border-collapse text-left text-sm"
+          >
+            <thead
+              id="table-head"
+              class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200"
+            ></thead>
+            <tbody
+              id="table-body"
+              class="divide-y divide-slate-200 bg-white"
+            ></tbody>
+          </table>
+        </div>
 
-  const sections = sectionEntries
-    .filter((entry) => entry[4]?.[0])
-    .map((entry) => {
-      const name = entry[1];
-      const [detail] = entry[4];
-      const id = detail[0];
-      const options = detail[1]?.map((option) => option[0]);
-      const isRequired = detail[2] === 1;
-      return {
-        name,
-        desc: entry[2],
-        isRequired,
-        id,
-        options,
-        type: getTypeString(entry[3]),
+        <div
+          class="text-red-500 text-sm mt-2 font-medium"
+          id="table-error"
+        ></div>
+
+        <h2 class="text-lg font-semibold text-slate-800 mt-8 mb-3">
+          Step 3 — Generate the pre-filled URLs
+        </h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <button
+            id="generate-btn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
+          >
+            Generate URLs
+          </button>
+        </div>
+
+        <div id="results" class="mt-4 space-y-2"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      const state = {
+        form: null,
+        rows: [],
       };
-    });
 
-  return { id: formId, formId, name: formName, sections };
-}
+      const $ = (id) => document.getElementById(id);
 
-async function loadMetadata() {
-  const input = $("metadata-input").value.trim();
-  addError($("meta-error"), "");
-  if (!input) {
-    addError($("meta-error"), "Paste the metadata JSON first.");
-    return;
-  }
-  let parsed;
-  try {
-    parsed = JSON.parse(input);
-  } catch (e) {
-    addError($("meta-error"), "Invalid JSON: " + e.message);
-    return;
-  }
-  try {
-    const data = parseFormMetadata(parsed);
-    state.form = data;
-    state.rows = [];
-    if (!data.formId) {
-      addError($("meta-error"), "Could not find a form ID in this metadata. Make sure you pasted FB_PUBLIC_LOAD_DATA_.");
-      return;
-    }
-    renderForm();
-  } catch (e) {
-    addError($("meta-error"), e.message);
-  }
-}
-
-function renderForm() {
-  const form = state.form;
-  $("form-meta").textContent = `Form: ${form.name} — Base URL: https://docs.google.com/forms/d/${form.formId}/viewform`;
-  $("table-section").classList.remove("hidden");
-
-  const head = $("table-head");
-  head.innerHTML = "";
-  const hr = document.createElement("tr");
-  const thAction = document.createElement("th");
-  thAction.textContent = "#";
-  hr.appendChild(thAction);
-  form.sections.forEach((s) => {
-    const th = document.createElement("th");
-    const title = document.createElement("span");
-    title.textContent = s.name + (s.isRequired ? " *" : "");
-    if (s.isRequired) title.classList.add("req");
-    th.appendChild(title);
-    const idSpan = document.createElement("span");
-    idSpan.className = "section-id";
-    idSpan.textContent = "entry." + s.id;
-    th.appendChild(idSpan);
-    hr.appendChild(th);
-  });
-  head.appendChild(hr);
-
-  if (state.rows.length === 0) {
-    addRow();
-  } else {
-    renderRows();
-  }
-}
-
-function renderRows() {
-  const body = $("table-body");
-  body.innerHTML = "";
-  state.rows.forEach((_, idx) => body.appendChild(renderRow(idx)));
-  $("add-hint").classList.add("hidden");
-}
-
-function renderRow(idx) {
-  const form = state.form;
-  const tr = document.createElement("tr");
-  const tdIdx = document.createElement("td");
-  tdIdx.textContent = String(idx + 1);
-  tr.appendChild(tdIdx);
-
-  form.sections.forEach((s) => {
-    const td = document.createElement("td");
-    const key = String(s.id);
-
-    if (s.options && s.options.length) {
-      const select = document.createElement("select");
-      const none = document.createElement("option");
-      none.value = "";
-      none.textContent = "";
-      select.appendChild(none);
-      s.options.forEach((opt) => {
-        const o = document.createElement("option");
-        o.value = opt;
-        o.textContent = opt;
-        select.appendChild(o);
-      });
-      select.value = (state.rows[idx]?.[key] ?? "");
-      select.addEventListener("change", () => {
-        state.rows[idx][key] = select.value;
-        saveRows();
-      });
-      td.appendChild(select);
-    } else {
-      const input = document.createElement("input");
-      input.value = (state.rows[idx]?.[key] ?? "");
-      if (s.type === "date") {
-        input.type = "date";
-      } else if (s.type === "time") {
-        input.type = "time";
-      } else {
-        input.type = "text";
-        input.placeholder = "value";
+      function escapeHtml(str) {
+        return String(str).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
       }
-      input.addEventListener("input", () => {
-        state.rows[idx][key] = input.value;
+
+      function addError(el, msg) {
+        el.textContent = msg;
+      }
+
+      const TYPE_MAP = {
+        0: "short_answer",
+        1: "paragraph",
+        2: "multiple_choice",
+        3: "dropdown",
+        4: "checkboxes",
+        5: "linear_scale",
+        7: "grid_choice",
+        9: "date",
+        10: "time",
+        13: "file_upload",
+        18: "rating",
+      };
+
+      function getTypeString(type) {
+        return TYPE_MAP[type] ?? "unknown";
+      }
+
+      function parseFormMetadata(formMetadata) {
+        const root = formMetadata;
+        const sectionEntries = root?.[1]?.[1] ?? [];
+        const formId = root?.[14] ?? null;
+        const formName = root?.[3] ?? "";
+
+        const sections = sectionEntries
+          .filter((entry) => entry[4]?.[0])
+          .map((entry) => {
+            const name = entry[1];
+            const [detail] = entry[4];
+            const id = detail[0];
+            const options = detail[1]?.map((option) => option[0]);
+            const isRequired = detail[2] === 1;
+            return {
+              name,
+              desc: entry[2],
+              isRequired,
+              id,
+              options,
+              type: getTypeString(entry[3]),
+            };
+          });
+
+        return { id: formId, formId, name: formName, sections };
+      }
+
+      async function loadMetadata() {
+        const input = $("metadata-input").value.trim();
+        addError($("meta-error"), "");
+        if (!input) {
+          addError($("meta-error"), "Paste the metadata JSON first.");
+          return;
+        }
+        let parsed;
+        try {
+          parsed = JSON.parse(input);
+        } catch (e) {
+          addError($("meta-error"), "Invalid JSON: " + e.message);
+          return;
+        }
+        try {
+          const data = parseFormMetadata(parsed);
+          state.form = data;
+          state.rows = [];
+          if (!data.formId) {
+            addError(
+              $("meta-error"),
+              "Could not find a form ID in this metadata. Make sure you pasted FB_PUBLIC_LOAD_DATA_.",
+            );
+            return;
+          }
+          renderForm();
+        } catch (e) {
+          addError($("meta-error"), e.message);
+        }
+      }
+
+      function renderForm() {
+        const form = state.form;
+        $("form-meta").textContent =
+          `Form: ${form.name} — Base URL: https://docs.google.com/forms/d/${form.formId}/viewform`;
+        $("table-section").classList.remove("hidden");
+
+        const head = $("table-head");
+        head.innerHTML = "";
+        const hr = document.createElement("tr");
+        const thAction = document.createElement("th");
+        thAction.textContent = "#";
+        hr.appendChild(thAction);
+        form.sections.forEach((s) => {
+          const th = document.createElement("th");
+          const title = document.createElement("span");
+          title.textContent = s.name + (s.isRequired ? " *" : "");
+          if (s.isRequired) title.classList.add("req");
+          th.appendChild(title);
+          const idSpan = document.createElement("span");
+          idSpan.className = "section-id";
+          idSpan.textContent = "entry." + s.id;
+          th.appendChild(idSpan);
+          hr.appendChild(th);
+        });
+        head.appendChild(hr);
+
+        if (state.rows.length === 0) {
+          addRow();
+        } else {
+          renderRows();
+        }
+      }
+
+      function renderRows() {
+        const body = $("table-body");
+        body.innerHTML = "";
+        state.rows.forEach((_, idx) => body.appendChild(renderRow(idx)));
+        $("add-hint").classList.add("hidden");
+      }
+
+      function renderRow(idx) {
+        const form = state.form;
+        const tr = document.createElement("tr");
+        const tdIdx = document.createElement("td");
+        tdIdx.textContent = String(idx + 1);
+        tr.appendChild(tdIdx);
+
+        form.sections.forEach((s) => {
+          const td = document.createElement("td");
+          const key = String(s.id);
+
+          if (s.options && s.options.length) {
+            const select = document.createElement("select");
+            const none = document.createElement("option");
+            none.value = "";
+            none.textContent = "";
+            select.appendChild(none);
+            s.options.forEach((opt) => {
+              const o = document.createElement("option");
+              o.value = opt;
+              o.textContent = opt;
+              select.appendChild(o);
+            });
+            select.value = state.rows[idx]?.[key] ?? "";
+            select.addEventListener("change", () => {
+              state.rows[idx][key] = select.value;
+              saveRows();
+            });
+            td.appendChild(select);
+          } else {
+            const input = document.createElement("input");
+            input.value = state.rows[idx]?.[key] ?? "";
+            if (s.type === "date") {
+              input.type = "date";
+            } else if (s.type === "time") {
+              input.type = "time";
+            } else {
+              input.type = "text";
+              input.placeholder = "value";
+            }
+            input.addEventListener("input", () => {
+              state.rows[idx][key] = input.value;
+            });
+            td.appendChild(input);
+          }
+          tr.appendChild(td);
+        });
+        return tr;
+      }
+
+      function addRow() {
+        const form = state.form;
+        const row = {};
+        form.sections.forEach((s) => {
+          row[String(s.id)] = "";
+        });
+        state.rows.push(row);
+        renderRows();
+        $("table-body").scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+
+      function removeLast() {
+        if (state.rows.length > 1) {
+          state.rows.pop();
+          renderRows();
+        }
+      }
+
+      function saveRows() {
+        const body = $("table-body");
+        const inputs = body.querySelectorAll("input, select");
+        // value persistence handled by listeners; nothing extra needed
+      }
+
+      function formToCsv() {
+        const form = state.form;
+        const headers = form.sections.map((s) => s.name);
+        const lines = [headers.join(",")];
+        state.rows.forEach((row) => {
+          lines.push(
+            form.sections
+              .map((s) => csvCell(row[String(s.id)] ?? ""))
+              .join(","),
+          );
+        });
+        return lines.join("\n");
+      }
+
+      function csvCell(value) {
+        const s = String(value ?? "");
+        if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+          return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+      }
+
+      function parseCsv(text) {
+        const rows = [];
+        let row = [];
+        let field = "";
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+          const c = text[i];
+          if (inQuotes) {
+            if (c === '"') {
+              if (text[i + 1] === '"') {
+                field += '"';
+                i++;
+              } else inQuotes = false;
+            } else field += c;
+          } else if (c === '"') {
+            inQuotes = true;
+          } else if (c === ",") {
+            row.push(field);
+            field = "";
+          } else if (c === "\n" || c === "\r") {
+            if (c === "\r" && text[i + 1] === "\n") i++;
+            row.push(field);
+            field = "";
+            if (row.some((x) => x !== "")) rows.push(row);
+            row = [];
+          } else field += c;
+        }
+        if (field !== "" || row.length) {
+          row.push(field);
+          rows.push(row);
+        }
+        return rows;
+      }
+
+      function exportCsv() {
+        if (!state.form) return;
+        const blob = new Blob(["\ufeff" + formToCsv()], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = (state.form.name || "form") + ".csv";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      function importCsv(text) {
+        const form = state.form;
+        if (!form) {
+          addError($("table-error"), "Load a form first.");
+          return;
+        }
+        const rows = parseCsv(text);
+        addError($("table-error"), "");
+        if (rows.length === 0) return;
+        const header = rows[0];
+        const headers = form.sections.map((s) => s.name);
+        const headerIdx = {};
+        const dataIdx = {};
+        headers.forEach((name, i) => {
+          const h = String(header[i] ?? "");
+          if (h.trim()) headerIdx[h.trim()] = i;
+          dataIdx[name] = i;
+        });
+
+        const newRows = [];
+        for (let r = 1; r < rows.length; r++) {
+          const row = {};
+          form.sections.forEach((s, si) => {
+            let ci = null;
+            if (headerIdx[s.name] !== undefined) ci = headerIdx[s.name];
+            else if (dataIdx[s.name] !== undefined) ci = dataIdx[s.name];
+            row[String(s.id)] =
+              ci !== null && ci !== undefined ? (rows[r][ci] ?? "") : "";
+          });
+          newRows.push(row);
+        }
+        if (newRows.length === 0) {
+          addError($("table-error"), "No data rows found in CSV.");
+          return;
+        }
+        // reset to single row then replace
+        state.rows = newRows;
+        renderRows();
+        addError($("table-error"), "");
+      }
+
+      function buildPrefillLinks() {
+        const form = state.form;
+        const base = `https://docs.google.com/forms/d/${form.formId}/viewform`;
+        const links = [];
+        state.rows.forEach((record, idx) => {
+          const entries = Object.entries(record).filter(
+            ([_, v]) => v !== "" && v != null,
+          );
+          if (entries.length === 0) return;
+          const params = ["usp=pp_url"];
+          entries.forEach(([id, v]) => {
+            params.push(
+              `entry.${encodeURIComponent(id)}=${encodeURIComponent(v)}`,
+            );
+          });
+          links.push({ index: idx + 1, url: `${base}?${params.join("&")}` });
+        });
+        return links;
+      }
+
+      function renderResults() {
+        const links = buildPrefillLinks();
+        const container = $("results");
+        container.innerHTML = "";
+        if (links.length === 0) {
+          container.innerHTML =
+            '<p class="empty-state">Fill in at least one row with a value, then generate.</p>';
+          return;
+        }
+        const h = document.createElement("h3");
+        h.textContent = `${links.length} pre-filled URL${links.length > 1 ? "s" : ""}`;
+        container.appendChild(h);
+
+        const copyAll = document.createElement("button");
+        copyAll.textContent = "Copy all";
+        copyAll.className = "secondary";
+        copyAll.addEventListener("click", () => {
+          navigator.clipboard.writeText(links.map((l) => l.url).join("\n"));
+        });
+        container.appendChild(copyAll);
+
+        links.forEach((l) => {
+          const div = document.createElement("div");
+          div.className = "result-item";
+          const a = document.createElement("a");
+          a.href = l.url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = `#${l.index}: ` + l.url;
+          const copy = document.createElement("button");
+          copy.textContent = "Copy";
+          copy.className = "secondary";
+          copy.addEventListener("click", () =>
+            navigator.clipboard.writeText(l.url),
+          );
+          div.appendChild(a);
+          div.appendChild(copy);
+          container.appendChild(div);
+        });
+      }
+
+      // Events
+      $("load-btn").addEventListener("click", loadMetadata);
+      $("upload-input").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          $("metadata-input").value = reader.result;
+          loadMetadata();
+        };
+        reader.readAsText(file);
+        e.target.value = "";
       });
-      td.appendChild(input);
-    }
-    tr.appendChild(td);
-  });
-  return tr;
-}
-
-function addRow() {
-  const form = state.form;
-  const row = {};
-  form.sections.forEach((s) => { row[String(s.id)] = ""; });
-  state.rows.push(row);
-  renderRows();
-  $("table-body").scrollIntoView({ behavior: "smooth", block: "end" });
-}
-
-function removeLast() {
-  if (state.rows.length > 1) {
-    state.rows.pop();
-    renderRows();
-  }
-}
-
-function saveRows() {
-  const body = $("table-body");
-  const inputs = body.querySelectorAll("input, select");
-  // value persistence handled by listeners; nothing extra needed
-}
-
-function formToCsv() {
-  const form = state.form;
-  const headers = form.sections.map((s) => s.name);
-  const lines = [headers.join(",")];
-  state.rows.forEach((row) => {
-    lines.push(form.sections.map((s) => csvCell(row[String(s.id)] ?? "")).join(","));
-  });
-  return lines.join("\n");
-}
-
-function csvCell(value) {
-  const s = String(value ?? "");
-  if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-    return '"' + s.replace(/"/g, '""') + '"';
-  }
-  return s;
-}
-
-function parseCsv(text) {
-  const rows = [];
-  let row = [];
-  let field = "";
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; }
-        else inQuotes = false;
-      } else field += c;
-    } else if (c === '"') {
-      inQuotes = true;
-    } else if (c === ",") {
-      row.push(field); field = "";
-    } else if (c === "\n" || c === "\r") {
-      if (c === "\r" && text[i + 1] === "\n") i++;
-      row.push(field); field = "";
-      if (row.some((x) => x !== "")) rows.push(row);
-      row = [];
-    } else field += c;
-  }
-  if (field !== "" || row.length) { row.push(field); rows.push(row); }
-  return rows;
-}
-
-function exportCsv() {
-  if (!state.form) return;
-  const blob = new Blob(["\ufeff" + formToCsv()], { type: "text/csv;charset=utf-8;" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = (state.form.name || "form") + ".csv";
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function importCsv(text) {
-  const form = state.form;
-  if (!form) { addError($("table-error"), "Load a form first."); return; }
-  const rows = parseCsv(text);
-  addError($("table-error"), "");
-  if (rows.length === 0) return;
-  const header = rows[0];
-  const headers = form.sections.map((s) => s.name);
-  const headerIdx = {};
-  const dataIdx = {};
-  headers.forEach((name, i) => {
-    const h = String(header[i] ?? "");
-    if (h.trim()) headerIdx[h.trim()] = i;
-    dataIdx[name] = i;
-  });
-
-  const newRows = [];
-  for (let r = 1; r < rows.length; r++) {
-    const row = {};
-    form.sections.forEach((s, si) => {
-      let ci = null;
-      if (headerIdx[s.name] !== undefined) ci = headerIdx[s.name];
-      else if (dataIdx[s.name] !== undefined) ci = dataIdx[s.name];
-      row[String(s.id)] = (ci !== null && ci !== undefined) ? (rows[r][ci] ?? "") : "";
-    });
-    newRows.push(row);
-  }
-  if (newRows.length === 0) {
-    addError($("table-error"), "No data rows found in CSV.");
-    return;
-  }
-  // reset to single row then replace
-  state.rows = newRows;
-  renderRows();
-  addError($("table-error"), "");
-}
-
-function buildPrefillLinks() {
-  const form = state.form;
-  const base = `https://docs.google.com/forms/d/${form.formId}/viewform`;
-  const links = [];
-  state.rows.forEach((record, idx) => {
-    const entries = Object.entries(record).filter(([_, v]) => v !== "" && v != null);
-    if (entries.length === 0) return;
-    const params = ["usp=pp_url"];
-    entries.forEach(([id, v]) => {
-      params.push(`entry.${encodeURIComponent(id)}=${encodeURIComponent(v)}`);
-    });
-    links.push({ index: idx + 1, url: `${base}?${params.join("&")}` });
-  });
-  return links;
-}
-
-function renderResults() {
-  const links = buildPrefillLinks();
-  const container = $("results");
-  container.innerHTML = "";
-  if (links.length === 0) {
-    container.innerHTML = '<p class="empty-state">Fill in at least one row with a value, then generate.</p>';
-    return;
-  }
-  const h = document.createElement("h3");
-  h.textContent = `${links.length} pre-filled URL${links.length > 1 ? "s" : ""}`;
-  container.appendChild(h);
-
-  const copyAll = document.createElement("button");
-  copyAll.textContent = "Copy all";
-  copyAll.className = "secondary";
-  copyAll.addEventListener("click", () => {
-    navigator.clipboard.writeText(links.map((l) => l.url).join("\n"));
-  });
-  container.appendChild(copyAll);
-
-  links.forEach((l) => {
-    const div = document.createElement("div");
-    div.className = "result-item";
-    const a = document.createElement("a");
-    a.href = l.url;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.textContent = `#${l.index}: ` + l.url;
-    const copy = document.createElement("button");
-    copy.textContent = "Copy";
-    copy.className = "secondary";
-    copy.addEventListener("click", () => navigator.clipboard.writeText(l.url));
-    div.appendChild(a);
-    div.appendChild(copy);
-    container.appendChild(div);
-  });
-}
-
-// Events
-$("load-btn").addEventListener("click", loadMetadata);
-$("upload-input").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    $("metadata-input").value = reader.result;
-    loadMetadata();
-  };
-  reader.readAsText(file);
-  e.target.value = "";
-});
-$("add-row").addEventListener("click", addRow);
-$("remove-last").addEventListener("click", removeLast);
-$("export-csv").addEventListener("click", exportCsv);
-$("csv-input").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => importCsv(reader.result);
-  reader.readAsText(file);
-  e.target.value = "";
-});
-$("generate-btn").addEventListener("click", renderResults);
-</script>
-</body>
+      $("add-row").addEventListener("click", addRow);
+      $("remove-last").addEventListener("click", removeLast);
+      $("export-csv").addEventListener("click", exportCsv);
+      $("csv-input").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => importCsv(reader.result);
+        reader.readAsText(file);
+        e.target.value = "";
+      });
+      $("generate-btn").addEventListener("click", renderResults);
+    </script>
+  </body>
 </html>
