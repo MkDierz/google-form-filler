@@ -1,199 +1,239 @@
 <!doctype html>
-<html lang="en" class="h-full bg-slate-50 text-slate-900">
+<html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Google Form Filler</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Form Prefill Studio</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <style>
+      :root {
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        background: #f6f7f9;
+        color: #1e293b;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      table {
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+      th,
+      td {
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+        background: #fff;
+      }
+      thead th {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        background: #eef1f5;
+        font-weight: 600;
+        font-size: 12px;
+        text-align: left;
+        padding: 6px 10px;
+        min-width: 170px;
+        white-space: nowrap;
+      }
+      thead th.act,
+      tbody td.act {
+        position: sticky;
+        left: 0;
+        z-index: 4;
+        min-width: 236px;
+        width: 236px;
+      }
+      tbody td.act {
+        z-index: 2;
+      }
+      td input,
+      td select {
+        width: 100%;
+        height: 36px;
+        padding: 0 10px;
+        background: transparent;
+        font-size: 13px;
+        border: 0;
+        outline: none;
+      }
+      td input:focus,
+      td select:focus {
+        box-shadow: inset 0 0 0 2px #0f766e;
+        background: #f0fdfa;
+      }
+      tbody tr.done td {
+        background: #f0fdf4;
+      }
+      tbody tr.done td.act {
+        background: #ecfdf5;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: #f1f5f9;
+      }
+      .btn:focus-visible,
+      button:focus-visible {
+        outline: 2px solid #0f766e;
+        outline-offset: 2px;
+      }
+      .btn-p {
+        background: #0f766e;
+        border-color: #0f766e;
+        color: #fff;
+      }
+      .btn-p:hover {
+        background: #115e59;
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      dialog::backdrop {
+        background: rgba(15, 23, 42, 0.45);
+      }
+      dialog {
+        border: 0;
+        border-radius: 16px;
+        padding: 0;
+        color: #1e293b;
+      }
+    </style>
   </head>
-  <body class="h-full font-sans antialiased flex flex-col">
-    <header class="bg-white border-b border-slate-200 px-6 py-5 shadow-sm">
-      <div class="max-w-7xl mx-auto">
-        <h1 class="text-xl font-bold tracking-tight text-slate-900">
-          Google Form Filler
-        </h1>
-        <p class="mt-1 text-sm text-slate-500">
-          Paste form metadata, fill out the table (one row per submission), and
-          generate pre-filled Google Form URLs.
-        </p>
+  <body class="flex flex-col">
+    <header
+      class="flex flex-wrap items-center gap-2 bg-white border-b border-slate-200 px-3 py-2"
+    >
+      <div class="font-semibold text-[15px] mr-2">Form Prefill Studio</div>
+      <button id="tpl-btn" class="btn" title="Switch or add form template">
+        <span id="tpl-name" class="max-w-[220px] truncate">No template</span> ▾
+      </button>
+      <div class="w-px h-6 bg-slate-200 mx-1"></div>
+      <button id="add-row" class="btn">+ Row</button>
+      <button id="add-many" class="btn">+ 10 rows</button>
+      <label class="btn"
+        >Import CSV<input
+          id="csv-in"
+          type="file"
+          accept=".csv,text/csv"
+          class="hidden"
+      /></label>
+      <button id="export-csv" class="btn">Export CSV</button>
+      <button id="reset" class="btn" title="Mark every link as not clicked">
+        Reset progress
+      </button>
+      <button id="clear" class="btn" title="Delete all rows">Clear rows</button>
+      <div class="ml-auto flex items-center gap-3">
+        <div class="text-sm text-slate-600">
+          <span id="stat">0 / 0</span> opened
+        </div>
+        <div class="w-28 h-2 rounded-full bg-slate-200 overflow-hidden">
+          <div
+            id="bar"
+            class="h-full bg-teal-600 transition-all"
+            style="width: 0"
+          ></div>
+        </div>
+        <button id="next" class="btn btn-p">Open next link</button>
       </div>
     </header>
 
-    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
-      <!-- Step 1: Metadata input -->
-      <section
-        class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6"
-      >
-        <h2 class="text-lg font-semibold text-slate-800 mb-3">
-          Step 1 — Provide form metadata
-        </h2>
+    <main id="main" class="flex-1 overflow-auto min-h-0"></main>
 
-        <details class="mb-4 group">
-          <summary
-            class="cursor-pointer text-blue-600 font-medium text-sm hover:text-blue-700 select-none"
-          >
-            How to get the metadata
-          </summary>
-          <ol
-            class="list-decimal list-inside mt-2 space-y-1 text-sm text-slate-600 pl-1"
-          >
-            <li>Open the Google Form you want to pre-fill in your browser.</li>
+    <footer
+      class="flex items-center justify-between gap-4 bg-white border-t border-slate-200 px-3 py-1.5 text-xs text-slate-500"
+    >
+      <span
+        >Tip: paste a block copied from Excel or Sheets into any cell. Enter
+        moves down. Separate checkbox answers with <b>;</b></span
+      >
+      <span id="msg" class="font-medium text-teal-700"></span>
+    </footer>
+
+    <dialog id="dlg" style="width: min(980px, 96vw)">
+      <div
+        class="flex items-center justify-between px-5 py-3 border-b border-slate-200"
+      >
+        <h2 class="font-semibold">Form templates</h2>
+        <button id="dlg-x" class="btn" aria-label="Close">Close</button>
+      </div>
+      <div class="grid md:grid-cols-2 max-h-[78vh] overflow-auto">
+        <section class="p-5 space-y-3 md:border-r border-slate-200">
+          <h3 class="font-semibold text-sm">Add a form</h3>
+          <ol class="list-decimal list-inside text-sm text-slate-600 space-y-1">
             <li>
-              Open the browser console (<kbd
-                class="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-xs"
-                >F12</kbd
-              >
-              →
-              <kbd
-                class="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-xs"
-                >Console</kbd
-              >).
+              Open the Google Form, press <b>F12</b>, go to <b>Console</b>.
             </li>
-            <li>
-              Paste and run:
-              <div class="mt-1">
-                <code
-                  class="bg-slate-100 text-slate-800 px-2 py-1 rounded text-xs font-mono inline-block border border-slate-200"
-                  >copy(JSON.stringify(FB_PUBLIC_LOAD_DATA_))</code
-                >
-              </div>
-            </li>
-            <li class="mt-1">
-              The metadata is now on your clipboard. Paste it below, or save it
-              to a file and upload it.
-            </li>
+            <li>Run this command (it copies the metadata):</li>
           </ol>
-        </details>
-
-        <textarea
-          id="metadata-input"
-          class="w-full min-h-[130px] font-mono text-xs sm:text-sm p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y bg-slate-50/50"
-          placeholder="Paste the JSON metadata here (from FB_PUBLIC_LOAD_DATA_)..."
-        ></textarea>
-
-        <div class="flex flex-wrap items-center gap-3 mt-3">
-          <button
-            id="load-btn"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
-          >
-            Load form
-          </button>
-
-          <label
-            for="upload-input"
-            class="bg-white hover:bg-blue-50 text-blue-600 border border-blue-600 font-medium px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer inline-flex items-center"
-          >
-            Upload JSON file
-          </label>
+          <div class="flex items-center gap-2">
+            <code
+              class="flex-1 bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-mono overflow-x-auto whitespace-nowrap"
+              >copy(JSON.stringify(FB_PUBLIC_LOAD_DATA_))</code
+            >
+            <button id="copy-cmd" class="btn">Copy</button>
+          </div>
+          <p class="text-sm text-slate-600">3. Paste the result here:</p>
+          <textarea
+            id="meta-in"
+            class="w-full h-32 p-2 border border-slate-300 rounded-lg font-mono text-xs resize-y focus:outline-none focus:ring-2 focus:ring-teal-600"
+            placeholder="Paste the JSON metadata"
+          ></textarea>
           <input
-            type="file"
-            id="upload-input"
-            accept=".json,application/json"
-            class="hidden"
+            id="tpl-in"
+            class="w-full h-9 px-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+            placeholder="Template name (defaults to the form title)"
           />
-        </div>
+          <div class="flex flex-wrap gap-2">
+            <button id="save-tpl" class="btn btn-p">Save and use</button>
+            <label class="btn"
+              >Upload JSON file<input
+                id="up"
+                type="file"
+                accept=".json,application/json"
+                class="hidden"
+            /></label>
+          </div>
+          <p id="meta-err" class="text-sm text-red-600 font-medium"></p>
+        </section>
+        <section class="p-5 bg-slate-50 rounded-br-2xl">
+          <h3 class="font-semibold text-sm mb-3">Saved templates</h3>
+          <div id="tpl-list" class="space-y-2"></div>
+        </section>
+      </div>
+    </dialog>
 
-        <div
-          id="meta-error"
-          class="text-red-500 text-sm mt-2 font-medium"
-        ></div>
-      </section>
-
-      <!-- Step 2: Table -->
-      <section
-        id="table-section"
-        class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hidden"
-      >
-        <h2 class="text-lg font-semibold text-slate-800 mb-1">
-          Step 2 — Fill in your submissions
-        </h2>
-        <div id="form-meta" class="text-sm text-slate-500 mb-2"></div>
-        <p class="text-sm text-slate-400 italic mb-4" id="add-hint">
-          Each row is one form submission. Add as many as you like.
-        </p>
-
-        <div class="flex flex-wrap items-center gap-2.5 mb-4">
-          <button
-            id="add-row"
-            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
-          >
-            + Add row
-          </button>
-          <button
-            id="remove-last"
-            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
-          >
-            Remove last row
-          </button>
-          <button
-            id="export-csv"
-            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
-          >
-            Export CSV
-          </button>
-
-          <label
-            for="csv-input"
-            class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer inline-flex items-center shadow-sm"
-          >
-            Import CSV
-          </label>
-          <input
-            type="file"
-            id="csv-input"
-            accept=".csv,text/csv"
-            class="hidden"
-          />
-        </div>
-
-        <div class="overflow-x-auto border border-slate-200 rounded-lg">
-          <table
-            id="data-table"
-            class="w-full border-collapse text-left text-sm"
-          >
-            <thead
-              id="table-head"
-              class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200"
-            ></thead>
-            <tbody
-              id="table-body"
-              class="divide-y divide-slate-200 bg-white"
-            ></tbody>
-          </table>
-        </div>
-
-        <div
-          class="text-red-500 text-sm mt-2 font-medium"
-          id="table-error"
-        ></div>
-
-        <h2 class="text-lg font-semibold text-slate-800 mt-8 mb-3">
-          Step 3 — Generate the pre-filled URLs
-        </h2>
-        <div class="flex flex-wrap items-center gap-3">
-          <button
-            id="generate-btn"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors shadow-sm cursor-pointer"
-          >
-            Generate URLs
-          </button>
-        </div>
-
-        <div id="results" class="mt-4 space-y-2"></div>
-      </section>
-    </main>
-
-    <script type="module">
-      const state = {
-        form: null,
-        rows: [],
-      };
-
+    <script>
       const $ = (id) => document.getElementById(id);
-
-      function escapeHtml(str) {
-        return String(str).replace(
+      const esc = (s) =>
+        String(s).replace(
           /[&<>"']/g,
           (c) =>
             ({
@@ -204,13 +244,29 @@
               "'": "&#39;",
             })[c],
         );
-      }
-
-      function addError(el, msg) {
-        el.textContent = msg;
-      }
-
-      const TYPE_MAP = {
+      const LS = {
+        get(k, d) {
+          try {
+            const v = localStorage.getItem(k);
+            return v ? JSON.parse(v) : d;
+          } catch {
+            return d;
+          }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(k, JSON.stringify(v));
+          } catch {
+            toast("Browser storage is unavailable");
+          }
+        },
+        del(k) {
+          try {
+            localStorage.removeItem(k);
+          } catch {}
+        },
+      };
+      const TYPES = {
         0: "short_answer",
         1: "paragraph",
         2: "multiple_choice",
@@ -224,377 +280,539 @@
         18: "rating",
       };
 
-      function getTypeString(type) {
-        return TYPE_MAP[type] ?? "unknown";
+      let templates = LS.get("gff:templates", []);
+      let activeId = LS.get("gff:active", null);
+      let form = null;
+      let rows = []; // { v: {entryId: value}, c: clicked }
+      let saveTimer;
+
+      function toast(t) {
+        $("msg").textContent = t;
+        clearTimeout(toast.t);
+        toast.t = setTimeout(() => ($("msg").textContent = ""), 3500);
       }
 
-      function parseFormMetadata(formMetadata) {
-        const root = formMetadata;
-        const sectionEntries = root?.[1]?.[1] ?? [];
-        const formId = root?.[14] ?? null;
-        const formName = root?.[3] ?? "";
-
-        const sections = sectionEntries
-          .filter((entry) => entry[4]?.[0])
-          .map((entry) => {
-            const name = entry[1];
-            const [detail] = entry[4];
-            const id = detail[0];
-            const options = detail[1]?.map((option) => option[0]);
-            const isRequired = detail[2] === 1;
+      function parseMeta(root) {
+        const entries = root?.[1]?.[1] ?? [];
+        const sections = entries
+          .filter((e) => e[4]?.[0])
+          .map((e) => {
+            const d = e[4][0];
             return {
-              name,
-              desc: entry[2],
-              isRequired,
-              id,
-              options,
-              type: getTypeString(entry[3]),
+              name: e[1] || "Untitled question",
+              desc: e[2],
+              id: d[0],
+              required: d[2] === 1,
+              type: TYPES[e[3]] ?? "unknown",
+              options: (d[1] || []).map((o) => o[0]).filter(Boolean),
             };
           });
-
-        return { id: formId, formId, name: formName, sections };
+        return { formId: root?.[14] ?? null, name: root?.[3] ?? "", sections };
       }
 
-      async function loadMetadata() {
-        const input = $("metadata-input").value.trim();
-        addError($("meta-error"), "");
-        if (!input) {
-          addError($("meta-error"), "Paste the metadata JSON first.");
-          return;
+      /* ---------- storage ---------- */
+      function persistTemplates() {
+        LS.set("gff:templates", templates);
+      }
+      function persistRows() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(
+          () => activeId && LS.set("gff:rows:" + activeId, rows),
+          250,
+        );
+      }
+
+      /* ---------- templates ---------- */
+      function openDialog() {
+        renderTplList();
+        $("meta-err").textContent = "";
+        $("dlg").showModal();
+      }
+      function renderTplList() {
+        const list = [...templates].sort(
+          (a, b) => (b.used || 0) - (a.used || 0),
+        );
+        $("tpl-list").innerHTML = list.length
+          ? list
+              .map(
+                (t) => `
+    <div class="bg-white border ${t.id === activeId ? "border-teal-600" : "border-slate-200"} rounded-xl p-3">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <div class="font-medium text-sm truncate">${esc(t.name)}</div>
+          <div class="text-xs text-slate-500">Added ${new Date(t.added).toLocaleString()}${t.used ? " · Last used " + new Date(t.used).toLocaleDateString() : ""}</div>
+        </div>
+        ${t.id === activeId ? '<span class="text-xs text-teal-700 font-medium">Active</span>' : ""}
+      </div>
+      <div class="flex gap-2 mt-2">
+        <button class="btn btn-p" data-use="${t.id}">Use</button>
+        <button class="btn" data-ren="${t.id}">Rename</button>
+        <button class="btn" data-del="${t.id}">Delete</button>
+      </div>
+    </div>`,
+              )
+              .join("")
+          : '<p class="text-sm text-slate-500">Nothing saved yet. Paste a form’s metadata on the left and save it as a template.</p>';
+      }
+      $("tpl-list").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        if (b.dataset.use) {
+          useTemplate(b.dataset.use);
+          $("dlg").close();
         }
-        let parsed;
-        try {
-          parsed = JSON.parse(input);
-        } catch (e) {
-          addError($("meta-error"), "Invalid JSON: " + e.message);
-          return;
-        }
-        try {
-          const data = parseFormMetadata(parsed);
-          state.form = data;
-          state.rows = [];
-          if (!data.formId) {
-            addError(
-              $("meta-error"),
-              "Could not find a form ID in this metadata. Make sure you pasted FB_PUBLIC_LOAD_DATA_.",
-            );
-            return;
+        if (b.dataset.ren) {
+          const t = templates.find((x) => x.id === b.dataset.ren);
+          const n = prompt("Template name", t.name);
+          if (n && n.trim()) {
+            t.name = n.trim();
+            persistTemplates();
+            renderTplList();
+            updateHeader();
           }
-          renderForm();
-        } catch (e) {
-          addError($("meta-error"), e.message);
         }
-      }
+        if (b.dataset.del) {
+          const t = templates.find((x) => x.id === b.dataset.del);
+          if (!confirm(`Delete “${t.name}” and its saved rows?`)) return;
+          templates = templates.filter((x) => x.id !== t.id);
+          persistTemplates();
+          LS.del("gff:rows:" + t.id);
+          if (activeId === t.id) {
+            activeId = null;
+            form = null;
+            rows = [];
+            LS.del("gff:active");
+            render();
+          }
+          renderTplList();
+        }
+      });
 
-      function renderForm() {
-        const form = state.form;
-        $("form-meta").textContent =
-          `Form: ${form.name} — Base URL: https://docs.google.com/forms/d/${form.formId}/viewform`;
-        $("table-section").classList.remove("hidden");
-
-        const head = $("table-head");
-        head.innerHTML = "";
-        const hr = document.createElement("tr");
-        const thAction = document.createElement("th");
-        thAction.textContent = "#";
-        hr.appendChild(thAction);
-        form.sections.forEach((s) => {
-          const th = document.createElement("th");
-          const title = document.createElement("span");
-          title.textContent = s.name + (s.isRequired ? " *" : "");
-          if (s.isRequired) title.classList.add("req");
-          th.appendChild(title);
-          const idSpan = document.createElement("span");
-          idSpan.className = "section-id";
-          idSpan.textContent = "entry." + s.id;
-          th.appendChild(idSpan);
-          hr.appendChild(th);
-        });
-        head.appendChild(hr);
-
-        if (state.rows.length === 0) {
-          addRow();
+      function saveTemplate() {
+        $("meta-err").textContent = "";
+        const raw = $("meta-in").value.trim();
+        if (!raw)
+          return ($("meta-err").textContent = "Paste the metadata first.");
+        let f;
+        try {
+          f = parseMeta(JSON.parse(raw));
+        } catch (e) {
+          return ($("meta-err").textContent = "Invalid JSON: " + e.message);
+        }
+        if (!f.formId)
+          return ($("meta-err").textContent =
+            "No form ID found. Make sure you copied FB_PUBLIC_LOAD_DATA_.");
+        if (!f.sections.length)
+          return ($("meta-err").textContent =
+            "No questions found in this metadata.");
+        const name = $("tpl-in").value.trim() || f.name || "Untitled form";
+        let t = templates.find((x) => x.formId === f.formId);
+        if (t) {
+          t.meta = raw;
+          t.name = $("tpl-in").value.trim() || t.name;
+          t.added = Date.now();
         } else {
-          renderRows();
+          t = {
+            id: "t" + Date.now().toString(36),
+            formId: f.formId,
+            name,
+            meta: raw,
+            added: Date.now(),
+            used: 0,
+          };
+          templates.push(t);
         }
+        persistTemplates();
+        $("meta-in").value = "";
+        $("tpl-in").value = "";
+        useTemplate(t.id);
+        $("dlg").close();
+        toast("Template saved");
       }
 
-      function renderRows() {
-        const body = $("table-body");
-        body.innerHTML = "";
-        state.rows.forEach((_, idx) => body.appendChild(renderRow(idx)));
-        $("add-hint").classList.add("hidden");
+      function useTemplate(id) {
+        const t = templates.find((x) => x.id === id);
+        if (!t) return;
+        try {
+          form = parseMeta(JSON.parse(t.meta));
+        } catch {
+          return toast("Stored metadata is corrupted");
+        }
+        activeId = id;
+        LS.set("gff:active", id);
+        t.used = Date.now();
+        persistTemplates();
+        rows = LS.get("gff:rows:" + id, []);
+        if (!rows.length) rows.push(newRow());
+        render();
       }
 
-      function renderRow(idx) {
-        const form = state.form;
-        const tr = document.createElement("tr");
-        const tdIdx = document.createElement("td");
-        tdIdx.textContent = String(idx + 1);
-        tr.appendChild(tdIdx);
-
+      /* ---------- rows / links ---------- */
+      const newRow = () => ({ v: {}, c: false });
+      function linkFor(r) {
+        const p = ["usp=pp_url"];
         form.sections.forEach((s) => {
-          const td = document.createElement("td");
-          const key = String(s.id);
-
-          if (s.options && s.options.length) {
-            const select = document.createElement("select");
-            const none = document.createElement("option");
-            none.value = "";
-            none.textContent = "";
-            select.appendChild(none);
-            s.options.forEach((opt) => {
-              const o = document.createElement("option");
-              o.value = opt;
-              o.textContent = opt;
-              select.appendChild(o);
-            });
-            select.value = state.rows[idx]?.[key] ?? "";
-            select.addEventListener("change", () => {
-              state.rows[idx][key] = select.value;
-              saveRows();
-            });
-            td.appendChild(select);
-          } else {
-            const input = document.createElement("input");
-            input.value = state.rows[idx]?.[key] ?? "";
-            if (s.type === "date") {
-              input.type = "date";
-            } else if (s.type === "time") {
-              input.type = "time";
-            } else {
-              input.type = "text";
-              input.placeholder = "value";
-            }
-            input.addEventListener("input", () => {
-              state.rows[idx][key] = input.value;
-            });
-            td.appendChild(input);
-          }
-          tr.appendChild(td);
+          const v = (r.v[s.id] ?? "").trim();
+          if (!v) return;
+          const vals =
+            s.type === "checkboxes"
+              ? v
+                  .split(";")
+                  .map((x) => x.trim())
+                  .filter(Boolean)
+              : [v];
+          vals.forEach((x) => p.push(`entry.${s.id}=${encodeURIComponent(x)}`));
         });
-        return tr;
+        return p.length > 1
+          ? `https://docs.google.com/forms/d/${form.formId}/viewform?${p.join("&")}`
+          : null;
+      }
+      function openRow(i) {
+        const u = linkFor(rows[i]);
+        if (!u) return;
+        window.open(u, "_blank", "noopener");
+        rows[i].c = true;
+        persistRows();
+        paintAct(i);
+        stats();
+        const tr = $("tbody").children[i];
+        tr?.scrollIntoView({ block: "nearest" });
+      }
+      function openNext() {
+        if (!form) return;
+        const i = rows.findIndex((r) => !r.c && linkFor(r));
+        if (i < 0) return toast("No unopened links left");
+        openRow(i);
       }
 
-      function addRow() {
-        const form = state.form;
-        const row = {};
-        form.sections.forEach((s) => {
-          row[String(s.id)] = "";
-        });
-        state.rows.push(row);
-        renderRows();
-        $("table-body").scrollIntoView({ behavior: "smooth", block: "end" });
+      function actHtml(i) {
+        const r = rows[i],
+          has = !!linkFor(r);
+        const btn = r.c
+          ? `<button class="btn" style="height:28px;color:#047857;border-color:#6ee7b7" data-open="${i}" ${has ? "" : "disabled"}>Opened ✓</button>`
+          : `<button class="btn btn-p" style="height:28px" data-open="${i}" ${has ? "" : "disabled"}>Open</button>`;
+        return `<div class="flex items-center gap-1.5 px-2 h-9">
+    <span class="w-6 text-right text-xs text-slate-400">${i + 1}</span>
+    <button data-dot="${i}" title="${r.c ? "Clicked. Tap to mark as not clicked" : "Not clicked yet. Tap to mark as clicked"}" class="w-3.5 h-3.5 rounded-full border ${r.c ? "bg-emerald-500 border-emerald-600" : "bg-white border-slate-400"}"></button>
+    ${btn}
+    <button class="text-xs text-slate-500 hover:text-slate-900 px-1" data-copy="${i}" title="Copy link" ${has ? "" : "disabled"}>Copy</button>
+    <button class="ml-auto text-slate-400 hover:text-red-600 px-1" data-rm="${i}" title="Delete row">✕</button>
+  </div>`;
+      }
+      function paintAct(i) {
+        const tr = $("tbody").children[i];
+        if (!tr) return;
+        tr.querySelector("td.act").innerHTML = actHtml(i);
+        tr.classList.toggle("done", rows[i].c);
+      }
+      function stats() {
+        const withLink = rows.filter((r) => form && linkFor(r));
+        const clicked = withLink.filter((r) => r.c).length;
+        $("stat").textContent = `${clicked} / ${withLink.length}`;
+        $("bar").style.width = withLink.length
+          ? (clicked / withLink.length) * 100 + "%"
+          : "0";
+        $("next").disabled = !form || clicked >= withLink.length;
       }
 
-      function removeLast() {
-        if (state.rows.length > 1) {
-          state.rows.pop();
-          renderRows();
+      /* ---------- rendering ---------- */
+      function updateHeader() {
+        const t = templates.find((x) => x.id === activeId);
+        $("tpl-name").textContent = t ? t.name : "No template";
+      }
+
+      function render() {
+        updateHeader();
+        const m = $("main");
+        ["add-row", "add-many", "export-csv", "reset", "clear"].forEach(
+          (id) => ($(id).disabled = !form),
+        );
+        if (!form) {
+          m.innerHTML = `<div class="h-full flex items-center justify-center p-6"><div class="max-w-md text-center space-y-3">
+      <h2 class="text-lg font-semibold">Start with a form template</h2>
+      <p class="text-sm text-slate-600">Add the metadata of a Google Form once, then reuse it any day. Your templates and rows stay in this browser.</p>
+      <button id="empty-open" class="btn btn-p">Add or choose a template</button></div></div>`;
+          $("empty-open").onclick = openDialog;
+          stats();
+          return;
         }
+        const head = form.sections
+          .map(
+            (s) =>
+              `<th title="${esc(s.desc || "")}">${esc(s.name)}${s.required ? ' <span class="text-red-500">*</span>' : ""}<div class="text-[10px] font-normal text-slate-400">entry.${s.id} · ${s.type.replace("_", " ")}</div></th>`,
+          )
+          .join("");
+        m.innerHTML = `<table class="w-max min-w-full text-sm"><thead><tr><th class="act">Row / link</th>${head}</tr></thead><tbody id="tbody"></tbody></table>`;
+        renderBody();
       }
 
-      function saveRows() {
-        const body = $("table-body");
-        const inputs = body.querySelectorAll("input, select");
-        // value persistence handled by listeners; nothing extra needed
-      }
-
-      function formToCsv() {
-        const form = state.form;
-        const headers = form.sections.map((s) => s.name);
-        const lines = [headers.join(",")];
-        state.rows.forEach((row) => {
-          lines.push(
-            form.sections
-              .map((s) => csvCell(row[String(s.id)] ?? ""))
-              .join(","),
-          );
-        });
-        return lines.join("\n");
-      }
-
-      function csvCell(value) {
-        const s = String(value ?? "");
-        if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-          return '"' + s.replace(/"/g, '""') + '"';
+      function cellHtml(s, i) {
+        const v = esc(rows[i].v[s.id] ?? "");
+        const at = `data-r="${i}" data-s="${s.id}"`;
+        if (
+          (s.options.length &&
+            ["multiple_choice", "dropdown", "linear_scale", "rating"].includes(
+              s.type,
+            )) ||
+          (s.options.length && s.type !== "checkboxes")
+        ) {
+          const raw = rows[i].v[s.id] ?? "";
+          const opts =
+            s.options.includes(raw) || !raw ? s.options : [raw, ...s.options];
+          return `<select ${at}><option value=""></option>${opts.map((o) => `<option value="${esc(o)}" ${o === raw ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
         }
-        return s;
+        const type =
+          s.type === "date" ? "date" : s.type === "time" ? "time" : "text";
+        const ph = s.type === "checkboxes" ? "A; B; C" : "";
+        return `<input ${at} type="${type}" value="${v}" placeholder="${ph}" list="${s.type === "checkboxes" && s.options.length ? "dl" + s.id : ""}" />`;
+      }
+      function renderBody() {
+        $("tbody").innerHTML = rows
+          .map(
+            (r, i) =>
+              `<tr class="${r.c ? "done" : ""}"><td class="act">${actHtml(i)}</td>${form.sections.map((s) => `<td>${cellHtml(s, i)}</td>`).join("")}</tr>`,
+          )
+          .join("");
+        stats();
       }
 
+      /* ---------- grid events ---------- */
+      document.addEventListener("input", (e) => {
+        const el = e.target;
+        if (!el.dataset?.s) return;
+        const i = +el.dataset.r;
+        rows[i].v[el.dataset.s] = el.value;
+        if (rows[i].c) {
+          rows[i].c = false;
+        } // edited: needs a fresh click
+        paintAct(i);
+        stats();
+        persistRows();
+      });
+      document.addEventListener("change", (e) => {
+        if (e.target.tagName === "SELECT" && e.target.dataset.s)
+          e.target.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (!b || !form) return;
+        const d = b.dataset;
+        if (d.open !== undefined) openRow(+d.open);
+        else if (d.dot !== undefined) {
+          const i = +d.dot;
+          rows[i].c = !rows[i].c;
+          persistRows();
+          paintAct(i);
+          stats();
+        } else if (d.copy !== undefined) {
+          navigator.clipboard
+            .writeText(linkFor(rows[+d.copy]))
+            .then(() => toast("Link copied"));
+        } else if (d.rm !== undefined) {
+          rows.splice(+d.rm, 1);
+          if (!rows.length) rows.push(newRow());
+          persistRows();
+          renderBody();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        const el = e.target;
+        if (
+          e.key !== "Enter" ||
+          !el.dataset?.s ||
+          (el.tagName === "SELECT" && false)
+        )
+          return;
+        e.preventDefault();
+        const i = +el.dataset.r + 1;
+        if (i >= rows.length) {
+          rows.push(newRow());
+          persistRows();
+          renderBody();
+        }
+        document
+          .querySelector(`[data-r="${i}"][data-s="${el.dataset.s}"]`)
+          ?.focus();
+      });
+      document.addEventListener("paste", (e) => {
+        const el = e.target;
+        if (!el.dataset?.s || !form) return;
+        const text = e.clipboardData.getData("text");
+        if (!/[\t\n]/.test(text.replace(/\r?\n$/, ""))) return;
+        e.preventDefault();
+        const lines = text
+          .replace(/\r?\n$/, "")
+          .split(/\r?\n/)
+          .map((l) => l.split("\t"));
+        const startCol = form.sections.findIndex(
+          (s) => String(s.id) === el.dataset.s,
+        );
+        lines.forEach((cells, li) => {
+          const ri = +el.dataset.r + li;
+          while (rows.length <= ri) rows.push(newRow());
+          cells.forEach((val, ci) => {
+            const s = form.sections[startCol + ci];
+            if (!s) return;
+            rows[ri].v[s.id] = val.trim();
+            rows[ri].c = false;
+          });
+        });
+        persistRows();
+        renderBody();
+        toast(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
+      });
+
+      /* ---------- CSV ---------- */
+      const csvCell = (v) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      };
       function parseCsv(text) {
-        const rows = [];
-        let row = [];
-        let field = "";
-        let inQuotes = false;
+        const out = [];
+        let row = [],
+          f = "",
+          q = false;
         for (let i = 0; i < text.length; i++) {
           const c = text[i];
-          if (inQuotes) {
+          if (q) {
             if (c === '"') {
               if (text[i + 1] === '"') {
-                field += '"';
+                f += '"';
                 i++;
-              } else inQuotes = false;
-            } else field += c;
-          } else if (c === '"') {
-            inQuotes = true;
-          } else if (c === ",") {
-            row.push(field);
-            field = "";
+              } else q = false;
+            } else f += c;
+          } else if (c === '"') q = true;
+          else if (c === ",") {
+            row.push(f);
+            f = "";
           } else if (c === "\n" || c === "\r") {
             if (c === "\r" && text[i + 1] === "\n") i++;
-            row.push(field);
-            field = "";
-            if (row.some((x) => x !== "")) rows.push(row);
+            row.push(f);
+            f = "";
+            if (row.some((x) => x !== "")) out.push(row);
             row = [];
-          } else field += c;
+          } else f += c;
         }
-        if (field !== "" || row.length) {
-          row.push(field);
-          rows.push(row);
+        if (f !== "" || row.length) {
+          row.push(f);
+          out.push(row);
         }
-        return rows;
+        return out;
       }
-
       function exportCsv() {
-        if (!state.form) return;
-        const blob = new Blob(["\ufeff" + formToCsv()], {
-          type: "text/csv;charset=utf-8;",
-        });
+        const lines = [form.sections.map((s) => csvCell(s.name)).join(",")];
+        rows.forEach((r) =>
+          lines.push(form.sections.map((s) => csvCell(r.v[s.id])).join(",")),
+        );
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = (state.form.name || "form") + ".csv";
+        a.href = URL.createObjectURL(
+          new Blob(["\ufeff" + lines.join("\n")], {
+            type: "text/csv;charset=utf-8",
+          }),
+        );
+        a.download = (form.name || "form") + ".csv";
         a.click();
         URL.revokeObjectURL(a.href);
       }
-
       function importCsv(text) {
-        const form = state.form;
-        if (!form) {
-          addError($("table-error"), "Load a form first.");
-          return;
-        }
-        const rows = parseCsv(text);
-        addError($("table-error"), "");
-        if (rows.length === 0) return;
-        const header = rows[0];
-        const headers = form.sections.map((s) => s.name);
-        const headerIdx = {};
-        const dataIdx = {};
-        headers.forEach((name, i) => {
-          const h = String(header[i] ?? "");
-          if (h.trim()) headerIdx[h.trim()] = i;
-          dataIdx[name] = i;
-        });
-
-        const newRows = [];
-        for (let r = 1; r < rows.length; r++) {
-          const row = {};
+        const data = parseCsv(text.replace(/^\ufeff/, ""));
+        if (data.length < 2) return toast("No data rows found in the CSV");
+        const header = data[0].map((h) => h.trim());
+        const imported = data.slice(1).map((cells) => {
+          const r = newRow();
           form.sections.forEach((s, si) => {
-            let ci = null;
-            if (headerIdx[s.name] !== undefined) ci = headerIdx[s.name];
-            else if (dataIdx[s.name] !== undefined) ci = dataIdx[s.name];
-            row[String(s.id)] =
-              ci !== null && ci !== undefined ? (rows[r][ci] ?? "") : "";
+            let ci = header.indexOf(s.name);
+            if (ci < 0) ci = si;
+            r.v[s.id] = (cells[ci] ?? "").trim();
           });
-          newRows.push(row);
-        }
-        if (newRows.length === 0) {
-          addError($("table-error"), "No data rows found in CSV.");
-          return;
-        }
-        // reset to single row then replace
-        state.rows = newRows;
-        renderRows();
-        addError($("table-error"), "");
-      }
-
-      function buildPrefillLinks() {
-        const form = state.form;
-        const base = `https://docs.google.com/forms/d/${form.formId}/viewform`;
-        const links = [];
-        state.rows.forEach((record, idx) => {
-          const entries = Object.entries(record).filter(
-            ([_, v]) => v !== "" && v != null,
+          return r;
+        });
+        const replace =
+          rows.every((r) => !Object.values(r.v).some(Boolean)) ||
+          confirm(
+            "Replace the current rows? Cancel appends the CSV rows instead.",
           );
-          if (entries.length === 0) return;
-          const params = ["usp=pp_url"];
-          entries.forEach(([id, v]) => {
-            params.push(
-              `entry.${encodeURIComponent(id)}=${encodeURIComponent(v)}`,
-            );
-          });
-          links.push({ index: idx + 1, url: `${base}?${params.join("&")}` });
-        });
-        return links;
+        rows = replace ? imported : rows.concat(imported);
+        persistRows();
+        renderBody();
+        toast(`Imported ${imported.length} rows`);
       }
 
-      function renderResults() {
-        const links = buildPrefillLinks();
-        const container = $("results");
-        container.innerHTML = "";
-        if (links.length === 0) {
-          container.innerHTML =
-            '<p class="empty-state">Fill in at least one row with a value, then generate.</p>';
-          return;
+      /* ---------- wiring ---------- */
+      $("tpl-btn").onclick = openDialog;
+      $("dlg-x").onclick = () => $("dlg").close();
+      $("save-tpl").onclick = saveTemplate;
+      $("copy-cmd").onclick = () =>
+        navigator.clipboard
+          .writeText("copy(JSON.stringify(FB_PUBLIC_LOAD_DATA_))")
+          .then(() => toast("Command copied"));
+      $("up").onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const rd = new FileReader();
+        rd.onload = () => ($("meta-in").value = rd.result);
+        rd.readAsText(f);
+        e.target.value = "";
+      };
+      $("add-row").onclick = () => {
+        rows.push(newRow());
+        persistRows();
+        renderBody();
+        $("main").scrollTop = 1e9;
+      };
+      $("add-many").onclick = () => {
+        for (let i = 0; i < 10; i++) rows.push(newRow());
+        persistRows();
+        renderBody();
+        $("main").scrollTop = 1e9;
+      };
+      $("export-csv").onclick = exportCsv;
+      $("csv-in").onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const rd = new FileReader();
+        rd.onload = () => importCsv(rd.result);
+        rd.readAsText(f);
+        e.target.value = "";
+      };
+      $("reset").onclick = () => {
+        rows.forEach((r) => (r.c = false));
+        persistRows();
+        renderBody();
+      };
+      $("clear").onclick = () => {
+        if (confirm("Delete all rows for this template?")) {
+          rows = [newRow()];
+          persistRows();
+          renderBody();
         }
-        const h = document.createElement("h3");
-        h.textContent = `${links.length} pre-filled URL${links.length > 1 ? "s" : ""}`;
-        container.appendChild(h);
+      };
+      $("next").onclick = openNext;
 
-        const copyAll = document.createElement("button");
-        copyAll.textContent = "Copy all";
-        copyAll.className = "secondary";
-        copyAll.addEventListener("click", () => {
-          navigator.clipboard.writeText(links.map((l) => l.url).join("\n"));
-        });
-        container.appendChild(copyAll);
+      // checkbox option suggestions
+      const dlHost = document.createElement("div");
+      document.body.appendChild(dlHost);
+      const _render = render;
+      render = function () {
+        _render();
+        dlHost.innerHTML = form
+          ? form.sections
+              .filter((s) => s.type === "checkboxes")
+              .map(
+                (s) =>
+                  `<datalist id="dl${s.id}">${s.options.map((o) => `<option value="${esc(o)}">`).join("")}</datalist>`,
+              )
+              .join("")
+          : "";
+      };
 
-        links.forEach((l) => {
-          const div = document.createElement("div");
-          div.className = "result-item";
-          const a = document.createElement("a");
-          a.href = l.url;
-          a.target = "_blank";
-          a.rel = "noopener";
-          a.textContent = `#${l.index}: ` + l.url;
-          const copy = document.createElement("button");
-          copy.textContent = "Copy";
-          copy.className = "secondary";
-          copy.addEventListener("click", () =>
-            navigator.clipboard.writeText(l.url),
-          );
-          div.appendChild(a);
-          div.appendChild(copy);
-          container.appendChild(div);
-        });
+      if (activeId && templates.some((t) => t.id === activeId))
+        useTemplate(activeId);
+      else {
+        render();
+        if (!templates.length) openDialog();
+        else openDialog();
       }
-
-      // Events
-      $("load-btn").addEventListener("click", loadMetadata);
-      $("upload-input").addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          $("metadata-input").value = reader.result;
-          loadMetadata();
-        };
-        reader.readAsText(file);
-        e.target.value = "";
-      });
-      $("add-row").addEventListener("click", addRow);
-      $("remove-last").addEventListener("click", removeLast);
-      $("export-csv").addEventListener("click", exportCsv);
-      $("csv-input").addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => importCsv(reader.result);
-        reader.readAsText(file);
-        e.target.value = "";
-      });
-      $("generate-btn").addEventListener("click", renderResults);
     </script>
   </body>
 </html>
